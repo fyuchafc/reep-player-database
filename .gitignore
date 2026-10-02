@@ -1,0 +1,124 @@
+# =========================================================
+# REEP PLAYER DATABASE
+# Git ignore rules
+# =========================================================
+
+# ---------------------------------------------------------
+# Python
+# ---------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ---------------------------------------------------------
+# Python packaging
+# ---------------------------------------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+wheels/
+pip-wheel-metadata/
+
+# ---------------------------------------------------------
+# Environment / secrets
+# ---------------------------------------------------------
+.env
+.env.*
+!.env.example
+.pypirc
+
+# ---------------------------------------------------------
+# Editors / IDEs
+# ---------------------------------------------------------
+.vscode/
+.idea/
+.spyderproject
+.spyproject
+.ropeproject
+*.swp
+*.swo
+tempCodeRunnerFile.py
+
+# ---------------------------------------------------------
+# Jupyter
+# ---------------------------------------------------------
+.ipynb_checkpoints/
+profile_default/
+
+# ---------------------------------------------------------
+# OS files
+# ---------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------------------------------------
+# REEP generated output
+#
+# The output folder contains large databases and many
+# historical audit/build files. These should NOT be added
+# to normal Git commits.
+# ---------------------------------------------------------
+output/
+
+# ---------------------------------------------------------
+# DuckDB / database files
+# ---------------------------------------------------------
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+
+# ---------------------------------------------------------
+# CSV / JSON generated exports
+#
+# Source scripts may generate these locally. Keep generated
+# data out of the normal repository unless explicitly needed.
+# ---------------------------------------------------------
+*.csv
+*.json
+
+# ---------------------------------------------------------
+# Temporary / backup files
+# ---------------------------------------------------------
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# ---------------------------------------------------------
+# Logs
+# ---------------------------------------------------------
+*.log
+
+# ---------------------------------------------------------
+# Local REEP/source database copies
+# ---------------------------------------------------------
+data/
+# ---------------------------------------------------------
+# Local/intermediate REEP mapping files
+# ---------------------------------------------------------
+1
+python
+pythpython
