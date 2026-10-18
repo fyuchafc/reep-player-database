@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fyucha FC | Football Birthday Tool</title>
+<style>
+:root{--green:#12CC64;--blue:#40B5F5;--navy:#15273C;--white:#fff;--muted:#64748b;--line:#dfe7ef;--bg:#f3f7fa;--shadow:0 12px 32px rgba(21,39,60,.08)}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--navy);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}button,input{font:inherit}button{cursor:pointer}.top{background:var(--navy);color:#fff;border-bottom:5px solid var(--green)}.topin,main,footer{max-width:1120px;margin:auto}.topin{padding:17px 22px;display:flex;align-items:center;gap:13px}.mark{height:44px;width:44px;border:3px solid var(--green);border-radius:12px;background:var(--blue);display:grid;place-items:center;font-weight:1000;color:var(--navy)}.brand{font-weight:900;letter-spacing:.06em}.brand small{display:block;font-size:.68rem;color:#b9d8ec;letter-spacing:.12em;margin-top:3px}main{padding:28px 22px 48px}.hero{display:grid;grid-template-columns:1.35fr .65fr;gap:20px;margin-bottom:22px}.hero-copy,.stat,.panel,.card,.profile{border:1px solid var(--line);border-radius:19px;background:#fff;box-shadow:var(--shadow)}.hero-copy{padding:30px}.eyebrow{font-size:.73rem;color:#087b40;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.hero h1{font-size:clamp(2rem,4vw,3.4rem);line-height:1.04;letter-spacing:-.045em;margin:14px 0}.hero p{color:var(--muted);line-height:1.65;margin:0}.stat{background:var(--blue);padding:24px;display:flex;flex-direction:column;justify-content:space-between}.stat strong{font-size:clamp(2.4rem,5vw,3.7rem);letter-spacing:-.05em}.panel{padding:22px;margin-bottom:22px}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:17px}h2{font-size:1.25rem;margin:0 0 5px;letter-spacing:-.025em}.sub{color:var(--muted);font-size:.9rem;line-height:1.5}.controls{display:grid;grid-template-columns:minmax(200px,.7fr) minmax(200px,1.3fr) auto;gap:12px;align-items:end}.field label{display:block;font-size:.78rem;font-weight:800;margin-bottom:7px}input{width:100%;min-height:46px;border:1px solid #cbd5e1;border-radius:11px;padding:11px 13px;outline:none;background:white;color:var(--navy)}input:focus{border-color:#168bd0;box-shadow:0 0 0 3px #40b5f533}.btn{border:0;border-radius:11px;min-height:45px;padding:0 17px;font-weight:850}.primary{background:var(--green);color:var(--navy)}.secondary{background:var(--navy);color:white}.quiet{background:#eaf5fc;color:var(--navy);border:1px solid #c9e7f8}.btn:disabled{opacity:.45;cursor:not-allowed}.note{border:1px solid #b8e2f8;background:#f0f9ff;border-radius:12px;padding:12px 14px;font-size:.84rem;line-height:1.5;color:#29465c}.status{min-height:25px;margin:12px 0;color:var(--muted);font-size:.87rem}.error{color:#b42318}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.card{box-shadow:none;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}.cardtop{display:flex;align-items:center;gap:11px}.avatar{height:45px;width:45px;flex:0 0 45px;display:grid;place-items:center;border-radius:13px;background:#e6f6ed;border:1px solid #bcefd1;color:#087b40;font-weight:950}.avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit}.profilephoto{width:112px;height:112px;flex:0 0 112px;border-radius:18px;font-size:1.7rem;margin:18px auto 8px;overflow:hidden}.profilephoto img{width:100%;height:100%;object-fit:cover;border-radius:inherit}.name{font-weight:900;line-height:1.3;overflow-wrap:anywhere}.id{font-size:.7rem;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.pills{display:flex;gap:6px;flex-wrap:wrap}.pill{border-radius:99px;background:#edf2f7;color:#3d5064;font-size:.7rem;font-weight:800;padding:5px 9px}.good{background:#e5f9ed;color:#087b40}.unknown{background:#fff4d6;color:#8a5a00}.conflict{background:#fde9e7;color:#a1261d}.cardfoot{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-top:auto}.date{font-size:.8rem;color:var(--muted)}.small{border:1px solid #cbd5e1;background:white;border-radius:9px;padding:8px 10px;color:var(--navy);font-size:.78rem;font-weight:850}.empty{grid-column:1/-1;text-align:center;padding:24px;border:1px dashed #cbd5e1;border-radius:13px;color:var(--muted);line-height:1.6}.pagination{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:20px}.page{font-size:.85rem;color:var(--muted);min-width:95px;text-align:center}.hidden{display:none!important}footer{padding:0 22px 28px;color:var(--muted);font-size:.8rem;line-height:1.6}.overlay{position:fixed;inset:0;background:#0b1928a6;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}.overlay.open{display:flex}.profile{width:min(620px,100%);max-height:90vh;overflow:auto;padding:23px}.profilehead{display:flex;justify-content:space-between;gap:12px}.profilehead h2{font-size:1.45rem;overflow-wrap:anywhere}.close{height:38px;width:38px;border:0;border-radius:9px;background:#edf2f7;color:var(--navy);font-size:1.2rem}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:18px 0}.detail{border:1px solid var(--line);border-radius:11px;padding:12px;min-width:0}.dl{font-size:.69rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:850;margin-bottom:6px}.dv{font-weight:800;overflow-wrap:anywhere}
+.sharebar{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0 4px}
+.share-btn{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer;font:inherit;font-size:.88rem}
+.share-whatsapp{background:#dcfce7;color:#166534}
+.share-facebook{background:#e7efff;color:#174ea6}
+.share-x{background:#15273c;color:#fff}
+.share-copy{background:#12cc64;color:#102b1c}
+.share-more{background:#edf2f7;color:#15273c}
+.share-btn:focus-visible{outline:3px solid #40b5f5;outline-offset:2px}
+@media(max-width:520px){.sharebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.share-btn{width:100%}.share-more{grid-column:1/-1}}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.stat{min-height:145px}.controls{grid-template-columns:1fr 1fr}.controls>.btn{grid-column:1/-1}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){main{padding:17px 12px 35px}.topin{padding:13px}.hero-copy,.stat,.panel{padding:18px;border-radius:15px}.controls,.grid,.details{grid-template-columns:1fr}.controls>.btn{grid-column:auto}.panel-head{display:block}.panel-head .btn{margin-top:12px}.card{padding:15px}footer{padding:0 12px 22px}}
+</style></head>
+<body>
+<header class="top"><div class="topin"><div class="mark">FC</div><div class="brand">FYUCHA FC<small>FOOTBALL HISTORY · PLAYER DATABASE</small></div></div></header>
+<main>
+<section class="hero"><div class="hero-copy"><div class="eyebrow">The football birthday archive</div><h1>Every player has a story.</h1><p>Find footballers born on any date, search player records, and explore available REEP birthday evidence. Missing or disputed dates will be labelled instead of being presented as facts.</p></div><div class="stat"><span class="eyebrow">Made for football fans</span><strong>365<span style="color:white">+</span></strong><div>Explore football birthdays throughout the year, from familiar names to players still waiting to be discovered.</div></div></section>
+<div class="note">Birthday results use the accepted birthday records. Player search and profiles use the wider database of 133,047 players with date-of-birth evidence.</div>
+<section class="panel"><div class="panel-head"><div><h2>Born on a date</h2><div class="sub">Choose a date to find players with a matching confirmed birthday.</div></div><button class="btn quiet" id="today">Today</button></div><div class="controls"><div class="field"><label for="birthdate">Select date</label><input type="date" id="birthdate"></div><div class="field"><label>About birthday results</label><div class="note">Birthday search uses accepted birthday records. Player search and profiles use the wider date-of-birth evidence database. Evidence labels explain whether a birthday is supported or needs review.</div></div><button class="btn primary" id="findBirthdays">Find birthdays</button></div><div class="status" id="birthdayStatus" role="status" aria-live="polite"></div><div class="grid" id="birthdayResults"></div><div class="pagination hidden" id="birthdayPagination"><button class="btn quiet" id="birthdayPrev">Previous</button><span class="page" id="birthdayPage"></span><button class="btn quiet" id="birthdayNext">Next</button></div></section>
+<section class="panel"><div class="panel-head"><div><h2>Find a player</h2><div class="sub">Search names, including accented names and multi-part names.</div></div></div><form id="searchForm"><div class="controls"><div class="field" style="grid-column:1/-1"><label for="query">Player name</label><input id="query" type="search" minlength="2" maxlength="100" placeholder="e.g. Lamine Yamal, Mohamed Salah, Messi" autocomplete="off" required></div><button class="btn secondary" type="submit">Search players</button></div></form><div class="status" id="searchStatus" role="status" aria-live="polite"></div><div class="grid" id="searchResults"></div><div class="pagination hidden" id="searchPagination"><button class="btn quiet" id="searchPrev">Previous</button><span class="page" id="searchPage"></span><button class="btn quiet" id="searchNext">Next</button></div></section>
+</main><footer>Fyucha FC Birthday Tool · Birth dates are displayed according to available database evidence. Missing or disputed dates should not be treated as confirmed.</footer>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="profileTitle"><div class="profile"><div class="profilehead"><div><div class="eyebrow">Player record</div><h2 id="profileTitle">Player profile</h2><div class="sub" id="profileSub"></div></div><button class="close" id="close" aria-label="Close profile">×</button></div><div class="status" id="profileStatus"></div><div class="avatar profilephoto" id="profileAvatar">?</div><div class="details" id="details"></div>
+<div class="sharebar" id="profileShareBar" aria-label="Share this player profile">
+<button type="button" class="share-btn share-whatsapp" data-share="whatsapp">WhatsApp</button>
+<button type="button" class="share-btn share-facebook" data-share="facebook">Facebook</button>
+<button type="button" class="share-btn share-x" data-share="x">X</button>
+<button type="button" class="share-btn share-copy" data-share="copy">Copy link</button>
+<button type="button" class="share-btn share-more" data-share="more">More sharing options</button>
+</div></div></div>
+<script>
+(() => {
+  // Local testing only. Change to your deployed HTTPS API URL after deployment.
+  const API_BASE = 'http://127.0.0.1:8000';
+  const PROFILE_API_BASE = 'http://127.0.0.1:8010';
+  const LIMIT = 25, $ = id => document.getElementById(id);
+  const state = {birthday:{page:1,total:0},search:{page:1,total:0,query:''}};
+  const todayString = () => {const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+  $('birthdate').value=todayString();
+  const esc = x => String(x ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const initials = name => String(name||'?').trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>Array.from(x)[0]||'').join('').toUpperCase()||'?';
+  function formatDate(v){if(!v)return '';const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return String(v);const d=new Date(+m[1],+m[2]-1,+m[3]);return Number.isNaN(d.getTime())?String(v):d.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})}
+  function statusOf(p){const s=String(p.dob_status||'').toLowerCase().replace(/[\s-]+/g,'_');if(/conflict|disput|unresolved/.test(s))return{text:'Conflicting date evidence',cls:'conflict'};if(s==='supported_preferred')return{text:'Supported (preferred)',cls:'good'};if(s==='supported'||/^(confirmed|resolved|accepted)$/.test(s))return{text:'Supported',cls:'good'};if(p.dob&&/confirmed|resolved|accepted|supported/.test(s))return{text:'Supported',cls:'good'};return{text:'Birthday not confirmed',cls:'unknown'}}
+  function dateText(p){if(p.dob)return formatDate(p.dob);if(p.birth_month&&p.birth_day)return `${String(p.birth_day).padStart(2,'0')}-${String(p.birth_month).padStart(2,'0')}`;return 'Birthday not confirmed'}
+  function status(id,msg,error=false){$(id).textContent=msg||'';$(id).classList.toggle('error',error)}
+  async function api(path){const r=await fetch(API_BASE+path,{headers:{Accept:'application/json'}});let data;try{data=await r.json()}catch{throw Error(`Unreadable API response (HTTP ${r.status})`)}if(!r.ok)throw Error(data.detail||`Request failed (HTTP ${r.status})`);return data}
+  async function profileApi(id){
+    const response=await fetch(`${PROFILE_API_BASE}/api/players/${encodeURIComponent(id)}`,{
+      headers:{Accept:'application/json'}
+    });
+    let data;
+    try{data=await response.json()}catch{throw Error(`Unreadable profile API response (HTTP ${response.status})`)}
+    if(!response.ok)throw Error(data.detail||`Profile API request failed (HTTP ${response.status})`);
+    return data;
+  }
+  async function loadPlayerPhoto(id, avatar, name){
+    if(!id || !avatar) return;
+    const initialsText = initials(name);
+    avatar.textContent = initialsText;
+    try{
+      const data = await api(`/api/player-image/${encodeURIComponent(id)}`);
+      if(!data.image_url || !avatar.isConnected) return;
+      const img = document.createElement('img');
+      img.alt = `${name || 'Football player'} portrait`;
+      img.loading = 'lazy';
+      img.referrerPolicy = 'no-referrer';
+      img.src = data.image_url;
+      img.onerror = () => {
+        img.remove();
+        avatar.textContent = initialsText;
+      };
+      avatar.replaceChildren(img);
+    }catch(e){
+      avatar.textContent = initialsText;
+    }
+  }
+
+  function render(targetId,players,kind){
+    const el=$(targetId);
+    if(!players?.length){
+      el.innerHTML='<div class="empty">No matching players were returned for this request.</div>';
+      return;
+    }
+    el.innerHTML=players.map(p=>{
+      const id=esc(p.reep_id||'');
+      const name=esc(p.label||'Unnamed player');
+      const s=statusOf(p);
+      const pill=kind==='birthday'
+        ? '<span class="pill good">Birthday match</span>'
+        : `<span class="pill ${s.cls}">${esc(s.text)}</span>`;
+      return `<article class="card"><div class="cardtop"><div class="avatar" data-avatar="${id}">${esc(initials(p.label))}</div><div style="min-width:0"><div class="name">${name}</div></div></div><div class="pills">${pill}${p.gender?`<span class="pill">${esc(p.gender)}</span>`:''}</div><div class="cardfoot"><span class="date">${esc(dateText(p))}</span><button class="small" data-id="${id}">View profile</button></div></article>`;
+    }).join('');
+    el.querySelectorAll('[data-avatar]').forEach(avatar=>{
+      const player=players.find(p=>String(p.reep_id||'')===avatar.dataset.avatar);
+      if(player) loadPlayerPhoto(player.reep_id,avatar,player.label);
+    });
+    el.querySelectorAll('[data-id]').forEach(b=>
+      b.addEventListener('click',()=>openProfile(b.dataset.id))
+    );
+  }
+  function paginate(kind){const s=state[kind],wrap=$(kind+'Pagination'),prev=$(kind+'Prev'),next=$(kind+'Next'),page=$(kind+'Page'),pages=Math.max(1,Math.ceil(s.total/LIMIT));wrap.classList.toggle('hidden',s.total<=LIMIT);page.textContent=`Page ${s.page} of ${pages}`;prev.disabled=s.page<=1;next.disabled=s.page>=pages}
+  async function loadBirthdays(page=1){const value=$('birthdate').value;if(!value){status('birthdayStatus','Please select a date.',true);return}const [y,m,d]=value.split('-'),md=`${m}-${d}`;state.birthday.page=page;status('birthdayStatus','Loading birthday records…');$('birthdayResults').innerHTML='';$('findBirthdays').disabled=true;try{const data=await api(`/api/birthdays?date=${encodeURIComponent(md)}&page=${page}&limit=${LIMIT}`);state.birthday.total=Number(data.total||0);render('birthdayResults',data.results||[],'birthday');status('birthdayStatus',`${state.birthday.total.toLocaleString()} player${state.birthday.total===1?'':'s'} found for ${new Date(+y,+m-1,+d).toLocaleDateString(undefined,{day:'numeric',month:'long'})}.`);paginate('birthday')}catch(e){status('birthdayStatus',`${e.message} Ensure the API is running at ${API_BASE}.`,true);$('birthdayResults').innerHTML='<div class="empty">Could not load birthday records. Check that the local API is running.</div>'}finally{$('findBirthdays').disabled=false}}
+  async function loadSearch(page=1){const q=state.search.query.trim();if(q.length<2){status('searchStatus','Enter at least two characters.',true);return}state.search.page=page;status('searchStatus','Searching player records?');$('searchResults').innerHTML='';try{const data=await api(`/api/search?q=${encodeURIComponent(q)}&page=${page}&limit=${LIMIT}`);state.search.total=Number(data.total||0);render('searchResults',data.results||[],'search');status('searchStatus',`${state.search.total.toLocaleString()} result${state.search.total===1?'':'s'} for ?${q}?.`);paginate('search')}catch(e){status('searchStatus',`${e.message} Check that the local API is running at ${API_BASE}.`,true);$('searchResults').innerHTML='<div class="empty">Could not search player records. Check the API connection and try again.</div>'}}
+  function detail(label,value){return `<div class="detail"><div class="dl">${esc(label)}</div><div class="dv">${esc(value||'Not available')}</div></div>`}
+  async function openProfile(id){
+    if(!id)return;
+    $('overlay').classList.add('open');
+    $('profileTitle').textContent='Loading player?';
+    $('profileSub').textContent='Football player profile';
+    $('details').innerHTML='';
+    const avatar=$('profileAvatar');
+    avatar.dataset.playerId=id;
+    avatar.textContent='?';
+    status('profileStatus','Loading profile?');
+
+    try{
+      const p=await api(`/api/players/${encodeURIComponent(id)}`);
+      if(avatar.dataset.playerId!==id)return;
+
+      const playerName=p.label||'Player profile';
+      $('profileTitle').textContent=playerName;
+      $('profileSub').textContent=p.gender||'Football player profile';
+      avatar.textContent=initials(playerName);
+
+      loadPlayerPhoto(id,avatar,playerName);
+
+      const s=statusOf(p);
+      $('details').innerHTML=
+        detail('Birthday',p.dob?formatDate(p.dob):'Birthday not confirmed')+
+        detail('Evidence status',s.text)+detail('Gender',p.gender);
+
+      try{
+        const extra=await profileApi(id);
+        if(avatar.dataset.playerId!==id)return;
+
+        const labels={
+          birthplace:'Birthplace',
+          country:'Country',
+          national_team:'National team',
+          preferred_foot:'Preferred foot',
+          primary_position:'Position',
+          height:'Height',
+          weight:'Weight'
+        };
+
+        const supported=Array.isArray(extra.facts)
+          ? extra.facts.filter(f=>
+              f &&
+              f.verification_status==='supported' &&
+              labels[f.type] &&
+              f.value!==null &&
+              f.value!==undefined &&
+              String(f.value).trim()!=='')
+          : [];
+
+        const grouped=[];
+        for(const fact of supported){
+          const value=String(fact.value).trim();
+          const normalized=value.toLocaleLowerCase();
+          const item=grouped.find(existing=>{
+            if(existing.type!==fact.type)return false;
+            const existingValue=existing.value.toLocaleLowerCase();
+            if(existingValue===normalized)return true;
+            if(fact.type!=='birthplace')return false;
+            const longer=existingValue.length>=normalized.length?existingValue:normalized;
+            const shorter=existingValue.length>=normalized.length?normalized:existingValue;
+            return longer.startsWith(shorter+', ') &&
+              !longer.slice(shorter.length+2).includes(',');
+          });
+          let target=item;
+          if(!target){
+            target={type:fact.type,value,sources:[]};
+            grouped.push(target);
+          }else if(value.length>target.value.length){
+            target.value=value;
+          }
+          const url=String(fact.source_url||'');
+          if(/^https:\/\//i.test(url)){
+            const sourceName=String(fact.source_name||'Source').trim()
+              .replace(/\s+\?\s+/g,' \u2014 ');
+            if(!target.sources.some(source=>source.url===url)){
+              target.sources.push({name:sourceName,url});
+            }
+          }
+        }
+
+        const factCards=Array.from(grouped.values()).map(f=>{
+          const sources='';
+          return `<div class="detail"><div class="dl">${esc(labels[f.type])}</div><div class="dv">${esc(f.value)}</div>${sources}</div>`;
+        }).join('');
+
+        if(factCards){
+          $('details').insertAdjacentHTML('beforeend',
+            `<div style="grid-column:1/-1;margin-top:8px"><h3 style="margin:0 0 6px;font-size:1.08rem">About the Player</h3><p style="margin:0 0 12px;color:#64748b;font-size:.84rem;line-height:1.5">Additional details supported by the available player-profile evidence.</p><div class="details" style="margin:0">${factCards}</div></div>`
+          );
+        }else{
+          $('details').insertAdjacentHTML('beforeend',
+            '<div class="note" style="grid-column:1/-1">No additional supported profile details are available yet.</div>'
+          );
+        }
+
+        status('profileStatus','Profile loaded.');
+      }catch(profileError){
+        if(avatar.dataset.playerId!==id)return;
+        $('details').insertAdjacentHTML('beforeend',
+          '<div class="note" style="grid-column:1/-1">Additional sourced details are temporarily unavailable. The birthday profile is still available.</div>'
+        );
+        status('profileStatus','Birthday profile loaded; supplementary details unavailable.');
+      }
+    }catch(e){
+      if(avatar.dataset.playerId!==id)return;
+      status('profileStatus',e.message,true);
+      $('details').innerHTML='<div class="note" style="grid-column:1/-1">Could not load this player profile. Check that the local Birthday API is running and try again.</div>';
+    }
+  }
+
+  function getPlayerShareUrl(){
+    const id=$('profileAvatar').dataset.playerId;
+    if(!id)throw Error('Open a player profile before sharing.');
+    const url=new URL(window.location.href);
+    url.searchParams.set('player',id);
+    url.hash='';
+    return {url:url.href,id,name:$('profileTitle').textContent||'Football player'};
+  }
+
+  async function copyPlayerLink(url){
+    try{
+      if(navigator.clipboard && window.isSecureContext){
+        await navigator.clipboard.writeText(url);
+      }else{
+        const field=document.createElement('textarea');
+        field.value=url;
+        field.setAttribute('readonly','');
+        field.style.position='fixed';
+        field.style.opacity='0';
+        document.body.appendChild(field);
+        field.select();
+        const copied=document.execCommand('copy');
+        field.remove();
+        if(!copied)throw Error('Clipboard access is unavailable.');
+      }
+      status('profileStatus','Player link copied.');
+    }catch(error){
+      status('profileStatus','Could not copy automatically. You can copy this link manually: '+url,true);
+    }
+  }
+
+  document.querySelectorAll('[data-share]').forEach(button=>{
+    button.addEventListener('click',async()=>{
+      try{
+        const player=getPlayerShareUrl();
+        const encodedUrl=encodeURIComponent(player.url);
+        const encodedText=encodeURIComponent('Discover '+player.name+' on Fyucha FC.');
+        const action=button.dataset.share;
+
+        if(action==='whatsapp'){
+          window.open('https://api.whatsapp.com/send?text='+encodedText+'%20'+encodedUrl,'_blank','noopener,noreferrer');
+        }else if(action==='facebook'){
+          window.open('https://www.facebook.com/sharer/sharer.php?u='+encodedUrl,'_blank','noopener,noreferrer');
+        }else if(action==='x'){
+          window.open('https://twitter.com/intent/tweet?text='+encodedText+'&url='+encodedUrl,'_blank','noopener,noreferrer');
+        }else if(action==='copy'){
+          await copyPlayerLink(player.url);
+        }else if(action==='more'){
+          if(navigator.share){
+            try{
+              await navigator.share({title:player.name+' | Fyucha FC',text:'Discover '+player.name+' on Fyucha FC.',url:player.url});
+              status('profileStatus','Sharing options opened.');
+            }catch(error){
+              if(error.name!=='AbortError')status('profileStatus','Sharing was cancelled or is unavailable.',true);
+            }
+          }else{
+            await copyPlayerLink(player.url);
+          }
+        }
+      }catch(error){
+        status('profileStatus',error.message||'Unable to share this profile.',true);
+      }
+    });
+  });
+
+  $('findBirthdays').addEventListener('click',()=>loadBirthdays(1));$('today').addEventListener('click',()=>{$('birthdate').value=todayString();loadBirthdays(1)});$('birthdate').addEventListener('change',()=>loadBirthdays(1));$('birthdayPrev').addEventListener('click',()=>loadBirthdays(Math.max(1,state.birthday.page-1)));$('birthdayNext').addEventListener('click',()=>loadBirthdays(state.birthday.page+1));$('searchForm').addEventListener('submit',e=>{e.preventDefault();state.search.query=$('query').value.trim();loadSearch(1)});$('searchPrev').addEventListener('click',()=>loadSearch(Math.max(1,state.search.page-1)));$('searchNext').addEventListener('click',()=>loadSearch(state.search.page+1));$('close').addEventListener('click',()=>$('overlay').classList.remove('open'));$('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))$('overlay').classList.remove('open')});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('overlay').classList.remove('open')});loadBirthdays(1);
+  const requestedPlayer=new URLSearchParams(window.location.search).get('player');
+  if(requestedPlayer)openProfile(requestedPlayer);
+})();
+</script></body></html>
