@@ -2,6 +2,15 @@ name: Fyucha FC Player Import
 
 on:
   workflow_dispatch:
+    inputs:
+      run_mode:
+        description: 'Select the workflow execution mode'
+        required: true
+        default: 'validation'
+        type: choice
+        options:
+          - validation
+          - test-10
 
 permissions:
   contents: write
@@ -76,6 +85,26 @@ jobs:
           print("NEXT OFFSET:", offset)
           print("STATUS:", state["status"])
           PYCODE
+
+      - name: Controlled 10-player import test
+        if: ${{ github.event.inputs.run_mode == 'test-10' }}
+        shell: bash
+        env:
+          FYUCHA_WP_USERNAME: ${{ secrets.FYUCHA_WP_USERNAME }}
+          FYUCHA_WP_APP_PASSWORD: ${{ secrets.FYUCHA_WP_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          git -C checkpoint-worktree config user.name "fyucha-import-bot"
+          git -C checkpoint-worktree config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python scripts/fyucha_github_batch_runner.py \\
+            --feed output/reep-player-profile-feed-v1.0.jsonl \\
+            --wordpress-url https://darkgrey-bat-836860.hostingersite.com \\
+            --checkpoint-worktree checkpoint-worktree \\
+            --batch-size 10 \\
+            --state-file output/fyucha-github-import-state.json \\
+            --log-file output/fyucha-github-import.log
 
       - name: Import five sequential player batches
         if: ${{ false }}
