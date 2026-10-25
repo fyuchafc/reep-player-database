@@ -11,6 +11,7 @@ on:
         options:
           - validation
           - test-10
+          - production-5000
 
 permissions:
   contents: write
@@ -107,7 +108,7 @@ jobs:
             --log-file output/fyucha-github-import.log
 
       - name: Import five sequential player batches
-        if: ${{ false }}
+        if: ${{ github.event.inputs.run_mode == 'production-5000' }}
         shell: bash
         env:
           FYUCHA_WP_USERNAME: ${{ secrets.FYUCHA_WP_USERNAME }}
