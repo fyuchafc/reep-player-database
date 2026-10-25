@@ -98,12 +98,12 @@ jobs:
           git -C checkpoint-worktree config user.name "fyucha-import-bot"
           git -C checkpoint-worktree config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          python scripts/fyucha_github_batch_runner.py \\
-            --feed output/reep-player-profile-feed-v1.0.jsonl \\
-            --wordpress-url https://darkgrey-bat-836860.hostingersite.com \\
-            --checkpoint-worktree checkpoint-worktree \\
-            --batch-size 10 \\
-            --state-file output/fyucha-github-import-state.json \\
+          python scripts/fyucha_github_batch_runner.py \
+            --feed output/reep-player-profile-feed-v1.0.jsonl \
+            --wordpress-url https://darkgrey-bat-836860.hostingersite.com \
+            --checkpoint-worktree checkpoint-worktree \
+            --batch-size 10 \
+            --state-file output/fyucha-github-import-state.json \
             --log-file output/fyucha-github-import.log
 
       - name: Import five sequential player batches
@@ -124,12 +124,12 @@ jobs:
             cp checkpoint-worktree/checkpoint.json \
               output/fyucha-github-import-state.json
 
-            python scripts/fyucha_github_batch_runner.py \\
-              --feed output/reep-player-profile-feed-v1.0.jsonl \\
-              --wordpress-url https://darkgrey-bat-836860.hostingersite.com \\
-              --checkpoint-worktree checkpoint-worktree \\
-              --batch-size 1000 \\
-              --state-file output/fyucha-github-import-state.json \\
+            python scripts/fyucha_github_batch_runner.py \
+              --feed output/reep-player-profile-feed-v1.0.jsonl \
+              --wordpress-url https://darkgrey-bat-836860.hostingersite.com \
+              --checkpoint-worktree checkpoint-worktree \
+              --batch-size 1000 \
+              --state-file output/fyucha-github-import-state.json \
               --log-file output/fyucha-github-import.log
 
             echo "Completed Fyucha FC import batch $batch of 5"
