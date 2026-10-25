@@ -1,0 +1,112 @@
+name: Fyucha FC Player Import
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fyucha-player-import
+  cancel-in-progress: false
+
+jobs:
+  import-players:
+    name: Import WordPress Players
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Checkout import checkpoint
+        uses: actions/checkout@v4
+        with:
+          ref: import-checkpoint
+          path: checkpoint-worktree
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Download and verify REEP player feed
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          curl --fail --location --retry 3 \
+            --output output/reep-player-profile-feed-v1.0.jsonl \
+            https://github.com/fyuchafc/reep-player-database/releases/download/reep-player-feed-v1.0/reep-player-profile-feed-v1.0.jsonl
+          echo "2326f9e977e8a0433f7101abb12941b57b8b1a91b5c64a8edd833f0b45af5475  output/reep-player-profile-feed-v1.0.jsonl" | sha256sum --check
+
+      - name: Restore importer checkpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PYCODE'
+          import json
+          import shutil
+          from pathlib import Path
+
+          source = Path("checkpoint-worktree/checkpoint.json")
+          destination = Path("output/fyucha-github-import-state.json")
+
+          if not source.is_file():
+              raise SystemExit("SAFETY STOP: Git checkpoint missing")
+
+          state = json.loads(source.read_text(encoding="utf-8"))
+
+          offset = state.get("next_offset")
+          if type(offset) is not int or offset < 0:
+              raise SystemExit("SAFETY STOP: Invalid checkpoint offset")
+
+          if state.get("status") != "READY_TO_RESUME":
+              raise SystemExit("SAFETY STOP: Checkpoint not resumable")
+
+          if not isinstance(state.get("feed_sha256"), str):
+              raise SystemExit("SAFETY STOP: Missing feed fingerprint")
+
+          destination.parent.mkdir(parents=True, exist_ok=True)
+          shutil.copyfile(source, destination)
+
+          print("CHECKPOINT RESTORED: PASS")
+          print("NEXT OFFSET:", offset)
+          print("STATUS:", state["status"])
+          PYCODE
+
+      - name: Import five sequential player batches
+        if: ${{ false }}
+        shell: bash
+        env:
+          FYUCHA_WP_USERNAME: ${{ secrets.FYUCHA_WP_USERNAME }}
+          FYUCHA_WP_APP_PASSWORD: ${{ secrets.FYUCHA_WP_APP_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          git -C checkpoint-worktree config user.name "fyucha-import-bot"
+          git -C checkpoint-worktree config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for batch in 1 2 3 4 5; do
+            echo "Starting Fyucha FC import batch $batch of 5"
+
+            cp checkpoint-worktree/checkpoint.json \
+              output/fyucha-github-import-state.json
+
+            python scripts/fyucha_github_batch_runner.py \\
+              --feed output/reep-player-profile-feed-v1.0.jsonl \\
+              --wordpress-url https://darkgrey-bat-836860.hostingersite.com \\
+              --checkpoint-worktree checkpoint-worktree \\
+              --batch-size 1000 \\
+              --state-file output/fyucha-github-import-state.json \\
+              --log-file output/fyucha-github-import.log
+
+            echo "Completed Fyucha FC import batch $batch of 5"
+          done
+
+      - name: Initial configuration
+        run: |
+          echo "Fyucha FC player feed verification configured"
+          echo "Live player imports are not enabled yet"
