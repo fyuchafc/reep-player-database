@@ -2,13 +2,13 @@
   "state_version": "1.0",
   "feed": "output/reep-player-profile-feed-v1.0.jsonl",
   "feed_sha256": "2326f9e977e8a0433f7101abb12941b57b8b1a91b5c64a8edd833f0b45af5475",
-  "next_offset": 149398,
-  "selected": 149308,
-  "created": 149276,
+  "next_offset": 150378,
+  "selected": 150288,
+  "created": 150256,
   "updated": 22,
-  "failed": 91,
+  "failed": 92,
   "started_at": "2026-10-08T16:13:11.597719+00:00",
-  "last_success_at": "2026-10-26T07:10:44.789806+00:00",
+  "last_success_at": "2026-10-26T07:38:53.011817+00:00",
   "completed_at": null,
   "status": "READY_TO_RESUME"
 }
