@@ -1,8 +1,6 @@
 name: Fyucha FC Player Import
 
 on:
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
     inputs:
       run_mode:
