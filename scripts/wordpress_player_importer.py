@@ -274,10 +274,11 @@ def request_json(
     retry_delay=3
 ):
 
+    method = method.upper()
+
     body = None
 
     if payload is not None:
-
         body = json.dumps(
             payload,
             ensure_ascii=False
@@ -289,10 +290,7 @@ def request_json(
 
     last_error = None
 
-    for attempt in range(
-        1,
-        retries + 2
-    ):
+    for attempt in range(1, retries + 2):
 
         req = Request(
             url,
@@ -302,21 +300,13 @@ def request_json(
         )
 
         try:
+            with urlopen(req, timeout=60) as response:
 
-            with urlopen(
-                req,
-                timeout=60
-            ) as response:
-
-                raw = response.read().decode(
-                    "utf-8"
-                )
+                raw = response.read().decode("utf-8")
 
                 return (
                     response.status,
-                    json.loads(raw)
-                    if raw
-                    else {}
+                    json.loads(raw) if raw else {}
                 )
 
         except HTTPError as exc:
@@ -327,64 +317,49 @@ def request_json(
             )
 
             try:
-
                 data = json.loads(raw)
-
             except json.JSONDecodeError:
+                data = {"error": raw}
 
-                data = {
-                    "error": raw
-                }
-
-            # ----------------------------------------------------
-            # Retry temporary server errors.
-            # ----------------------------------------------------
-
-            if (
-                exc.code in (
-                    408,
-                    429,
-                    500,
-                    502,
-                    503,
-                    504,
+            retryable = (
+                method == "GET"
+                and exc.code in (
+                    408, 429, 500, 502, 503, 504
                 )
                 and attempt <= retries
-            ):
+            )
 
+            if retryable:
                 print(
-                    f"  HTTP {exc.code} "
-                    f"— retry {attempt}/{retries} "
+                    f"  HTTP {exc.code} - "
+                    f"retry {attempt}/{retries} "
                     f"in {retry_delay}s..."
                 )
-
-                time.sleep(
-                    retry_delay
-                )
-
+                time.sleep(retry_delay)
                 continue
 
-            return (
-                exc.code,
-                data
-            )
+            return exc.code, data
 
         except URLError as exc:
 
             last_error = exc
 
-            if attempt <= retries:
+            if method != "GET":
+                raise RuntimeError(
+                    f"UNCERTAIN POST OUTCOME: "
+                    f"{method} request to {url} "
+                    f"may have reached the server. "
+                    f"Automatic retry prevented. "
+                    f"Reconcile before retrying: {exc}"
+                ) from exc
 
+            if attempt <= retries:
                 print(
-                    f"  Network error "
-                    f"— retry {attempt}/{retries} "
+                    f"  Network error - "
+                    f"retry {attempt}/{retries} "
                     f"in {retry_delay}s..."
                 )
-
-                time.sleep(
-                    retry_delay
-                )
-
+                time.sleep(retry_delay)
                 continue
 
             raise RuntimeError(
@@ -395,7 +370,6 @@ def request_json(
     raise RuntimeError(
         f"Request failed: {last_error}"
     )
-
 
 # ================================================================
 # PAYLOADS
