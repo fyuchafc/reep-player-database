@@ -253,6 +253,16 @@ def main():
     print("CHECKPOINT VALIDATION: PASS")
     print("LOCAL AND GIT CHECKPOINTS: MATCH")
 
+    with Path(args.feed).open("rb") as feed_stream:
+        feed_total = sum(1 for _ in feed_stream)
+
+    if local_state["next_offset"] == feed_total:
+        print(
+            "FEED ALREADY COMPLETE: next_offset equals feed length "
+            f"({feed_total:,}). Nothing to import."
+        )
+        return
+
     print("STARTING WORDPRESS IMPORT BATCH")
 
     try:
