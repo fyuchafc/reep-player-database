@@ -209,7 +209,9 @@ final class Fyucha_FC_Player_Profiles {
 
             'primary_position' => self::read_meta($post->ID, '_fyucha_primary_position'),
 
-            'secondary_positions' => self::read_meta($post->ID, '_fyucha_secondary_positions'),
+            'secondary_positions' => self::split_list(
+                self::read_meta($post->ID, '_fyucha_secondary_positions')
+            ),
 
             'position_status' => self::read_meta($post->ID, '_fyucha_position_status'),
 
@@ -219,6 +221,20 @@ final class Fyucha_FC_Player_Profiles {
 
             'club_evidence' => self::read_meta($post->ID, '_fyucha_club_evidence'),
         ];
+    }
+
+    /**
+     * Turn 'A | B' text into a list. Arrays and null pass through.
+     */
+    private static function split_list($value) {
+
+        if ($value === null || is_array($value)) {
+            return $value;
+        }
+
+        $parts = array_values(array_filter(array_map('trim', explode('|', $value)), 'strlen'));
+
+        return $parts ? $parts : null;
     }
 
     /**
