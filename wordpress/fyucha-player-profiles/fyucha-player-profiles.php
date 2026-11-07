@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.5.0
+ * Version: 0.6.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -202,7 +202,43 @@ final class Fyucha_FC_Player_Profiles {
                 self::VERSION_META,
                 true
             ),
+
+            // New keys (v0.6.0). The keys above must stay unchanged:
+            // the importer depends on id and reep_id.
+            'gender' => self::read_meta($post->ID, '_fyucha_gender'),
+
+            'primary_position' => self::read_meta($post->ID, '_fyucha_primary_position'),
+
+            'secondary_positions' => self::read_meta($post->ID, '_fyucha_secondary_positions'),
+
+            'position_status' => self::read_meta($post->ID, '_fyucha_position_status'),
+
+            'alias_count' => (int) get_post_meta($post->ID, '_fyucha_alias_count', true),
+
+            'external_id_count' => (int) get_post_meta($post->ID, '_fyucha_external_id_count', true),
+
+            'club_evidence' => self::read_meta($post->ID, '_fyucha_club_evidence'),
         ];
+    }
+
+    /**
+     * Read one metadata value. Blank becomes null; JSON arrays are decoded.
+     */
+    private static function read_meta($post_id, $key) {
+
+        $value = get_post_meta($post_id, $key, true);
+
+        if ($value === '' || $value === null) {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+
+        return $value;
     }
 
     /**
