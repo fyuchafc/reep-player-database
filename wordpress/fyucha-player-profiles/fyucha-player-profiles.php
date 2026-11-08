@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.6.0
+ * Version: 0.7.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -28,6 +28,12 @@ final class Fyucha_FC_Player_Profiles {
         add_action(
             'rest_api_init',
             [__CLASS__, 'register_rest_routes']
+        );
+
+        add_filter(
+            'the_content',
+            [__CLASS__, 'append_profile'],
+            20
         );
     }
 
@@ -235,6 +241,72 @@ final class Fyucha_FC_Player_Profiles {
         $parts = array_values(array_filter(array_map('trim', explode('|', $value)), 'strlen'));
 
         return $parts ? $parts : null;
+    }
+
+    /**
+     * Append a profile section to single player pages.
+     * Reads stored metadata only; blank fields are left out.
+     */
+    public static function append_profile($content) {
+
+        if (!is_singular(self::POST_TYPE) || !in_the_loop() || !is_main_query()) {
+            return $content;
+        }
+
+        $id = get_the_ID();
+        $rows = [];
+        $club_note = false;
+
+        $gender = self::read_meta($id, '_fyucha_gender');
+        if (is_string($gender) && $gender !== '') {
+            $rows['Gender'] = ucfirst($gender);
+        }
+
+        $primary = self::read_meta($id, '_fyucha_primary_position');
+        if (is_string($primary) && $primary !== '') {
+            $rows['Position'] = $primary;
+        }
+
+        $secondary = self::split_list(self::read_meta($id, '_fyucha_secondary_positions'));
+        if (is_array($secondary) && $secondary) {
+            $rows['Also plays'] = implode(', ', array_map('strval', $secondary));
+        }
+
+        $clubs = self::read_meta($id, '_fyucha_club_evidence');
+        if (is_array($clubs) && !empty($clubs['observed_clubs'])) {
+            $text = (string) $clubs['observed_clubs'];
+            $first = isset($clubs['first_observed_season']) ? (string) $clubs['first_observed_season'] : '';
+            $last = isset($clubs['last_observed_season']) ? (string) $clubs['last_observed_season'] : '';
+            if ($first !== '') {
+                $text .= ' (' . $first . (($last !== '' && $last !== $first) ? "\u{2013}" . $last : '') . ')';
+            }
+            $rows['Observed clubs'] = $text;
+            $club_note = true;
+        }
+
+        $reep = get_post_meta($id, self::REEP_META, true);
+        if ($reep) {
+            $rows['REEP ID'] = (string) $reep;
+        }
+
+        if (!$rows) {
+            return $content;
+        }
+
+        $html = '<section class="fyucha-player-profile">';
+        $html .= '<h2>Player profile</h2>';
+        $html .= '<dl>';
+        foreach ($rows as $label => $value) {
+            $html .= '<dt style="font-weight:600;margin-top:.75em">' . esc_html($label) . '</dt>';
+            $html .= '<dd style="margin:0">' . esc_html($value) . '</dd>';
+        }
+        $html .= '</dl>';
+        if ($club_note) {
+            $html .= '<p><small>Observed clubs show where this player appears in match coverage; this is not a complete career history.</small></p>';
+        }
+        $html .= '</section>';
+
+        return $content . $html;
     }
 
     /**
