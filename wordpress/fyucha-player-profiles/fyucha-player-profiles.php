@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.7.0
+ * Version: 0.8.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -284,17 +284,80 @@ final class Fyucha_FC_Player_Profiles {
             $club_note = true;
         }
 
-        $reep = get_post_meta($id, self::REEP_META, true);
-        if ($reep) {
-            $rows['REEP ID'] = (string) $reep;
+        $reep = (string) get_post_meta($id, self::REEP_META, true);
+        $front = [];
+        $photo_html = '';
+        $about_html = '';
+
+        $b = self::birthday_data($reep);
+        if ($b) {
+
+            $conflicted = (($b['dob_status'] ?? '') === 'conflicted');
+
+            if (!empty($b['description'])) {
+                $front['Description'] = (string) $b['description'];
+            }
+
+            if ($conflicted) {
+                $front['Date of birth'] = 'Conflicting birth-date evidence';
+            } else {
+                $dob = self::format_date($b['dob'] ?? '');
+                if ($dob !== null) {
+                    $front['Date of birth'] = $dob;
+                    if (($b['dob_status'] ?? '') === 'supported_preferred') {
+                        $front['Birth-date status'] = 'Preferred supported birth date';
+                    }
+                }
+            }
+
+            $died = isset($b['died']) ? trim((string) $b['died']) : '';
+            if ($died === 'unknown') {
+                $front['Died'] = 'Date not known';
+            } elseif ($died !== '') {
+                $died_text = self::format_date($died);
+                if ($died_text !== null) {
+                    $front['Died'] = $died_text;
+                }
+            }
+
+            $file = isset($b['commons_file']) ? trim((string) $b['commons_file']) : '';
+            if ($file !== '') {
+                $enc = rawurlencode(str_replace(' ', '_', $file));
+                $photo_html = '<figure style="margin:0 0 1em">'
+                    . '<img src="' . esc_url('https://commons.wikimedia.org/wiki/Special:FilePath/' . $enc . '?width=400') . '"'
+                    . ' alt="' . esc_attr(get_the_title($id)) . '" loading="lazy"'
+                    . ' style="max-width:240px;height:auto;border-radius:8px">'
+                    . '<figcaption><small><a href="' . esc_url('https://commons.wikimedia.org/wiki/File:' . $enc) . '"'
+                    . ' target="_blank" rel="noopener">Photo: Wikimedia Commons</a></small></figcaption>'
+                    . '</figure>';
+            }
+
+            $about = isset($b['about']) ? trim((string) $b['about']) : '';
+            if (!$conflicted && $about !== '') {
+                $about_html = '<h3>About</h3><p>' . esc_html($about) . '</p><p><small>';
+                $wiki = isset($b['enwiki_title']) ? trim((string) $b['enwiki_title']) : '';
+                if ($wiki !== '') {
+                    $about_html .= '<a href="' . esc_url('https://en.wikipedia.org/wiki/' . $wiki) . '"'
+                        . ' target="_blank" rel="noopener">From Wikipedia (CC BY-SA 4.0)</a>';
+                } else {
+                    $about_html .= 'From Wikipedia (CC BY-SA 4.0)';
+                }
+                $about_html .= '</small></p>';
+            }
         }
 
-        if (!$rows) {
+        $rows = array_merge($front, $rows);
+        if ($reep !== '') {
+            $rows['REEP ID'] = $reep;
+        }
+
+        if (!$rows && $photo_html === '' && $about_html === '') {
             return $content;
         }
 
         $html = '<section class="fyucha-player-profile">';
         $html .= '<h2>Player profile</h2>';
+        $html .= $photo_html;
         $html .= '<dl>';
         foreach ($rows as $label => $value) {
             $html .= '<dt style="font-weight:600;margin-top:.75em">' . esc_html($label) . '</dt>';
@@ -304,9 +367,77 @@ final class Fyucha_FC_Player_Profiles {
         if ($club_note) {
             $html .= '<p><small>Observed clubs show where this player appears in match coverage; this is not a complete career history.</small></p>';
         }
+        $html .= $about_html;
         $html .= '</section>';
 
         return $content . $html;
+    }
+
+    /**
+     * Look up Birthday Tool data for one player by REEP ID.
+     * Returns null if the player has no row or the tables are missing.
+     */
+    private static function birthday_data($reep) {
+
+        global $wpdb;
+
+        if ($reep === '') {
+            return null;
+        }
+
+        $p = $wpdb->prefix;
+        $previous = $wpdb->suppress_errors(true);
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT dob, dob_status FROM {$p}fyucha_birthday_players WHERE reep_id = %s LIMIT 1",
+                $reep
+            ),
+            ARRAY_A
+        );
+
+        if (!$row) {
+            $wpdb->suppress_errors($previous);
+            return null;
+        }
+
+        // Each table is read on its own, so a missing table only drops its own fields.
+        $extra = [
+            "SELECT commons_file FROM {$p}fyucha_birthday_photos WHERE reep_id = %s LIMIT 1",
+            "SELECT description, enwiki_title, died FROM {$p}fyucha_birthday_fame WHERE reep_id = %s LIMIT 1",
+            "SELECT about FROM {$p}fyucha_birthday_about WHERE reep_id = %s LIMIT 1",
+        ];
+
+        foreach ($extra as $sql) {
+            $more = $wpdb->get_row($wpdb->prepare($sql, $reep), ARRAY_A);
+            if (is_array($more)) {
+                $row = array_merge($row, $more);
+            }
+        }
+
+        $wpdb->suppress_errors($previous);
+
+        return $row;
+    }
+
+    /**
+     * Format a YYYY-MM-DD string as "9 April 1956". Returns null if invalid.
+     */
+    private static function format_date($value) {
+
+        $value = trim((string) $value);
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        $d = DateTime::createFromFormat('!Y-m-d', $value, new DateTimeZone('UTC'));
+
+        if (!$d || $d->format('Y-m-d') !== $value) {
+            return null;
+        }
+
+        return $d->format('j F Y');
     }
 
     /**
