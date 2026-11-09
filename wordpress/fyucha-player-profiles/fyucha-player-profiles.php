@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.8.0
+ * Version: 0.9.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -34,6 +34,16 @@ final class Fyucha_FC_Player_Profiles {
             'the_content',
             [__CLASS__, 'append_profile'],
             20
+        );
+
+        add_action(
+            'rest_api_init',
+            [__CLASS__, 'register_search_route']
+        );
+
+        add_shortcode(
+            'fyucha_player_directory',
+            [__CLASS__, 'directory_shortcode']
         );
     }
 
@@ -438,6 +448,245 @@ final class Fyucha_FC_Player_Profiles {
         }
 
         return $d->format('j F Y');
+    }
+
+    /**
+     * Register the public, read-only player search route.
+     */
+    public static function register_search_route() {
+
+        register_rest_route(
+            'fyucha/v1',
+            '/search',
+            [
+                'methods' => WP_REST_Server::READABLE,
+                'callback' => [__CLASS__, 'search_players'],
+                'permission_callback' => '__return_true',
+                'args' => [
+                    'q' => [
+                        'required' => true,
+                        'type' => 'string',
+                    ],
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Search players by name and by Birthday Tool aliases.
+     * Whole-word matches first, then fame, then name. Read-only.
+     */
+    public static function search_players(WP_REST_Request $request) {
+
+        global $wpdb;
+
+        $q = trim(sanitize_text_field((string) $request->get_param('q')));
+        $q = mb_substr($q, 0, 80);
+
+        if (mb_strlen($q) < 3) {
+            return new WP_Error(
+                'fyucha_search_too_short',
+                'Enter at least 3 characters.',
+                ['status' => 400]
+            );
+        }
+
+        $norm = trim((string) preg_replace('/[^a-z0-9]+/', ' ', strtolower(remove_accents($q))));
+        $source = ($norm !== '') ? $norm : mb_strtolower($q);
+        $tokens = array_slice(array_values(array_filter(preg_split('/\s+/', $source))), 0, 4);
+
+        if (!$tokens) {
+            return ['query' => $q, 'total' => 0, 'results' => []];
+        }
+
+        $cache_key = 'fyucha_search_' . md5($source);
+        $cached = get_transient($cache_key);
+        if (is_array($cached)) {
+            $cached['query'] = $q;
+            return $cached;
+        }
+
+        $lit = function ($s) use ($wpdb) {
+            return $wpdb->prepare('%s', $s);
+        };
+        $like = function ($s) use ($wpdb) {
+            return $wpdb->esc_like($s);
+        };
+        $whole = function ($col, $t) use ($lit, $like) {
+            $e = $like($t);
+            return '(' . $col . ' = ' . $lit($t)
+                . ' OR ' . $col . ' LIKE ' . $lit($e . ' %')
+                . ' OR ' . $col . ' LIKE ' . $lit('% ' . $e)
+                . ' OR ' . $col . ' LIKE ' . $lit('% ' . $e . ' %') . ')';
+        };
+
+        $title_all = [];
+        $title_whole = [];
+        foreach ($tokens as $t) {
+            $title_all[] = 'p.post_title LIKE ' . $lit('%' . $like($t) . '%');
+            $title_whole[] = $whole('p.post_title', $t);
+        }
+        $title_all_sql = '(' . implode(' AND ', $title_all) . ')';
+        $title_whole_sql = '(' . implode(' AND ', $title_whole) . ')';
+        $alias_cond = ($norm !== '') ? $whole('alias_norm', $norm) : '1=0';
+
+        $pp = $wpdb->prefix;
+
+        $sql = "SELECT p.ID, p.post_title, m.meta_value AS reep_id, f.description,
+                       COALESCE(f.sitelinks, 0) AS fame,
+                       CASE WHEN {$title_whole_sql} OR al.reep_id IS NOT NULL THEN 0 ELSE 1 END AS rank_group
+                FROM {$wpdb->posts} p
+                JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_fyucha_reep_id'
+                LEFT JOIN {$pp}fyucha_birthday_fame f ON f.reep_id = m.meta_value
+                LEFT JOIN (SELECT DISTINCT reep_id FROM {$pp}fyucha_birthday_aliases WHERE {$alias_cond}) al
+                       ON al.reep_id = m.meta_value
+                WHERE p.post_type = 'fyucha_player' AND p.post_status = 'publish'
+                  AND ({$title_all_sql} OR al.reep_id IS NOT NULL)
+                ORDER BY rank_group ASC, fame DESC, p.post_title ASC
+                LIMIT 20";
+
+        // Fallback if the fame or alias tables are missing: names only.
+        $fallback = "SELECT p.ID, p.post_title, m.meta_value AS reep_id, '' AS description, 0 AS fame,
+                            CASE WHEN {$title_whole_sql} THEN 0 ELSE 1 END AS rank_group
+                     FROM {$wpdb->posts} p
+                     JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_fyucha_reep_id'
+                     WHERE p.post_type = 'fyucha_player' AND p.post_status = 'publish'
+                       AND {$title_all_sql}
+                     ORDER BY rank_group ASC, p.post_title ASC
+                     LIMIT 20";
+
+        $previous = $wpdb->suppress_errors(true);
+
+        $rows = $wpdb->get_results($sql, ARRAY_A);
+        if ($wpdb->last_error !== '') {
+            $rows = $wpdb->get_results($fallback, ARRAY_A);
+        }
+
+        $failed = ($wpdb->last_error !== '');
+        $wpdb->suppress_errors($previous);
+
+        if ($failed) {
+            return new WP_Error(
+                'fyucha_search_failed',
+                'Search is unavailable right now.',
+                ['status' => 500]
+            );
+        }
+
+        if (!is_array($rows)) {
+            $rows = [];
+        }
+
+        $ids = array_map('intval', wp_list_pluck($rows, 'ID'));
+        if ($ids) {
+            update_meta_cache('post', $ids);
+        }
+
+        $results = [];
+        foreach ($rows as $r) {
+            $post_id = (int) $r['ID'];
+            $position = get_post_meta($post_id, '_fyucha_primary_position', true);
+            $results[] = [
+                'name' => (string) $r['post_title'],
+                'url' => get_permalink($post_id),
+                'reep_id' => (string) $r['reep_id'],
+                'description' => !empty($r['description']) ? (string) $r['description'] : null,
+                'position' => ($position !== '' && $position !== null) ? (string) $position : null,
+            ];
+        }
+
+        $response = [
+            'query' => $q,
+            'total' => count($results),
+            'results' => $results,
+        ];
+
+        set_transient($cache_key, $response, 10 * MINUTE_IN_SECONDS);
+
+        return $response;
+    }
+
+    /**
+     * Shortcode [fyucha_player_directory]: a search box that calls the search route.
+     */
+    public static function directory_shortcode() {
+
+        $endpoint = esc_url_raw(rest_url('fyucha/v1/search'));
+        $uid = 'fyucha-dir-' . wp_generate_password(6, false);
+
+        ob_start();
+        ?>
+        <div class="fyucha-player-directory" id="<?php echo esc_attr($uid); ?>">
+            <form class="fyucha-dir-form" style="display:flex;gap:.5em;flex-wrap:wrap;margin-bottom:1em">
+                <input type="search" name="q" minlength="3" maxlength="80" required
+                       placeholder="Search players by name or nickname" aria-label="Search players"
+                       style="flex:1;min-width:220px;padding:.6em">
+                <button type="submit" style="padding:.6em 1.2em">Search</button>
+            </form>
+            <p class="fyucha-dir-status" aria-live="polite"></p>
+            <div class="fyucha-dir-results"></div>
+        </div>
+        <script>
+        (function () {
+            var root = document.getElementById(<?php echo wp_json_encode($uid); ?>);
+            if (!root) { return; }
+            var endpoint = <?php echo wp_json_encode($endpoint); ?>;
+            var form = root.querySelector('.fyucha-dir-form');
+            var input = form.querySelector('input');
+            var status = root.querySelector('.fyucha-dir-status');
+            var box = root.querySelector('.fyucha-dir-results');
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var q = input.value.trim();
+                box.textContent = '';
+                if (q.length < 3) {
+                    status.textContent = 'Enter at least 3 characters.';
+                    return;
+                }
+                status.textContent = 'Searching...';
+                var url = endpoint + (endpoint.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(q);
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function (r) {
+                        return r.json().then(function (d) { return { ok: r.ok, data: d }; });
+                    })
+                    .then(function (res) {
+                        if (!res.ok) {
+                            status.textContent = (res.data && res.data.message) || 'Search failed.';
+                            return;
+                        }
+                        var list = res.data.results || [];
+                        status.textContent = list.length
+                            ? 'Showing ' + list.length + ' result' + (list.length === 1 ? '' : 's') + ' for ' + q
+                            : 'No players found for ' + q;
+                        list.forEach(function (item) {
+                            var card = document.createElement('div');
+                            card.style.cssText = 'padding:.75em 0;border-bottom:1px solid #e3e8ee';
+                            var link = document.createElement('a');
+                            link.href = item.url;
+                            link.textContent = item.name;
+                            link.style.fontWeight = '600';
+                            card.appendChild(link);
+                            var bits = [];
+                            if (item.description) { bits.push(item.description); }
+                            if (item.position) { bits.push(item.position); }
+                            if (bits.length) {
+                                var small = document.createElement('div');
+                                small.style.fontSize = '.9em';
+                                small.textContent = bits.join(' \u00b7 ');
+                                card.appendChild(small);
+                            }
+                            box.appendChild(card);
+                        });
+                    })
+                    .catch(function () {
+                        status.textContent = 'Search failed. Please try again.';
+                    });
+            });
+        })();
+        </script>
+        <?php
+        return ob_get_clean();
     }
 
     /**
