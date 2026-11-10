@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.9.0
+ * Version: 0.9.1
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -499,11 +499,19 @@ final class Fyucha_FC_Player_Profiles {
             return ['query' => $q, 'total' => 0, 'results' => []];
         }
 
-        $cache_key = 'fyucha_search_' . md5($source);
+        $cache_key = 'fyucha_search_v2_' . md5($source);
         $cached = get_transient($cache_key);
         if (is_array($cached)) {
             $cached['query'] = $q;
             return $cached;
+        }
+
+        if (self::rate_limited()) {
+            return new WP_Error(
+                'fyucha_search_rate_limited',
+                'Too many searches. Please wait a minute and try again.',
+                ['status' => 429]
+            );
         }
 
         $lit = function ($s) use ($wpdb) {
@@ -575,6 +583,14 @@ final class Fyucha_FC_Player_Profiles {
 
         if (!is_array($rows)) {
             $rows = [];
+        }
+
+        // Keep only the most relevant matches when there are enough of them.
+        $strong = array_values(array_filter($rows, function ($r) {
+            return (int) $r['rank_group'] === 0;
+        }));
+        if (count($strong) >= 3) {
+            $rows = $strong;
         }
 
         $ids = array_map('intval', wp_list_pluck($rows, 'ID'));
@@ -687,6 +703,26 @@ final class Fyucha_FC_Player_Profiles {
         </script>
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Allow at most 20 uncached searches per minute per visitor (by IP address).
+     */
+    private static function rate_limited() {
+
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : 'unknown';
+        $key = 'fyucha_rl_' . md5($ip);
+        $now = time();
+
+        $state = get_transient($key);
+        if (!is_array($state) || !isset($state['t'], $state['n']) || ($now - (int) $state['t']) >= 60) {
+            $state = ['t' => $now, 'n' => 0];
+        }
+
+        $state['n']++;
+        set_transient($key, $state, 120);
+
+        return $state['n'] > 20;
     }
 
     /**
