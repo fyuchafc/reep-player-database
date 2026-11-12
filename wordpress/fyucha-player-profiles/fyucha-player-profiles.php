@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.11.0
+ * Version: 0.11.1
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -383,15 +383,15 @@ final class Fyucha_FC_Player_Profiles {
             . '.fyp-headmain{flex:1 1 280px;min-width:0}'
             . '.fyp-kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1d4ed8}'
             . '.fyp-desc{font-size:17px;color:#334155;margin:6px 0 14px}'
-            . '.fyp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}'
-            . '.fyp-chips li{background:#e8efff;color:#1e3a8a;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px;margin:0}'
+            . '.fyp .fyp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0!important;padding:0!important;list-style:none!important}'
+            . '.fyp .fyp-chips li{background:#e8efff;color:#1e3a8a;font-weight:600;font-size:13px;padding:6px 12px!important;border-radius:999px;margin:0!important;list-style:none!important}'
             . '.fyp-cols{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;align-items:flex-start}'
             . '.fyp-main{flex:999 1 520px;min-width:0}.fyp-side{flex:1 1 280px;min-width:0}'
             . '.fyp-card{background:#fff;border:1px solid #dbe3ee;border-radius:12px;padding:22px}'
             . '.fyp-card h2{margin:0 0 12px;font-size:20px;color:#0b1f44}'
             . '.fyp-about{font-size:16px;line-height:1.65;margin:0 0 10px}'
             . '.fyp-credit,.fyp-note{font-size:13px;color:#475569;margin:0}'
-            . '.fyp-note{margin-top:14px}'
+            . '.fyp .fyp-note{margin:14px 0 0}'
             . '.fyp-dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;margin:0}'
             . '.fyp-dl dt{color:#475569;font-weight:400;margin:0}.fyp-dl dd{margin:0;font-weight:600}'
             . '</style>';
