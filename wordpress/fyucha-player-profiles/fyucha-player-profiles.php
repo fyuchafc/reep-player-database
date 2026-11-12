@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.9.1
+ * Version: 0.11.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -333,18 +333,17 @@ final class Fyucha_FC_Player_Profiles {
             $file = isset($b['commons_file']) ? trim((string) $b['commons_file']) : '';
             if ($file !== '') {
                 $enc = rawurlencode(str_replace(' ', '_', $file));
-                $photo_html = '<figure style="margin:0 0 1em">'
+                $photo_html = '<figure class="fyp-photo">'
                     . '<img src="' . esc_url('https://commons.wikimedia.org/wiki/Special:FilePath/' . $enc . '?width=400') . '"'
-                    . ' alt="' . esc_attr(get_the_title($id)) . '" loading="lazy"'
-                    . ' style="max-width:240px;height:auto;border-radius:8px">'
-                    . '<figcaption><small><a href="' . esc_url('https://commons.wikimedia.org/wiki/File:' . $enc) . '"'
-                    . ' target="_blank" rel="noopener">Photo: Wikimedia Commons</a></small></figcaption>'
+                    . ' alt="' . esc_attr(get_the_title($id)) . '" loading="lazy" width="200">'
+                    . '<figcaption><a href="' . esc_url('https://commons.wikimedia.org/wiki/File:' . $enc) . '"'
+                    . ' target="_blank" rel="noopener">Photo: Wikimedia Commons</a></figcaption>'
                     . '</figure>';
             }
 
             $about = isset($b['about']) ? trim((string) $b['about']) : '';
             if (!$conflicted && $about !== '') {
-                $about_html = '<h3>About</h3><p>' . esc_html($about) . '</p><p><small>';
+                $about_html = '<h2>About ' . esc_html(get_the_title($id)) . '</h2><p class="fyp-about">' . esc_html($about) . '</p><p class="fyp-credit">';
                 $wiki = isset($b['enwiki_title']) ? trim((string) $b['enwiki_title']) : '';
                 if ($wiki !== '') {
                     $about_html .= '<a href="' . esc_url('https://en.wikipedia.org/wiki/' . $wiki) . '"'
@@ -352,33 +351,87 @@ final class Fyucha_FC_Player_Profiles {
                 } else {
                     $about_html .= 'From Wikipedia (CC BY-SA 4.0)';
                 }
-                $about_html .= '</small></p>';
+                $about_html .= '</p>';
             }
         }
 
         $rows = array_merge($front, $rows);
-        if ($reep !== '') {
-            $rows['REEP ID'] = $reep;
-        }
 
         if (!$rows && $photo_html === '' && $about_html === '') {
             return $content;
         }
 
-        $html = '<section class="fyucha-player-profile">';
-        $html .= '<h2>Player profile</h2>';
-        $html .= $photo_html;
-        $html .= '<dl>';
-        foreach ($rows as $label => $value) {
-            $html .= '<dt style="font-weight:600;margin-top:.75em">' . esc_html($label) . '</dt>';
-            $html .= '<dd style="margin:0">' . esc_html($value) . '</dd>';
+        $desc = isset($rows['Description']) ? (string) $rows['Description'] : '';
+        unset($rows['Description']);
+
+        $chips = [];
+        if (isset($rows['Position'])) {
+            $chips[] = $rows['Position'];
         }
-        $html .= '</dl>';
-        if ($club_note) {
-            $html .= '<p><small>Observed clubs show where this player appears in match coverage; this is not a complete career history.</small></p>';
+        if (isset($rows['Date of birth'])) {
+            $chips[] = ($rows['Date of birth'] === 'Conflicting birth-date evidence')
+                ? $rows['Date of birth']
+                : 'Born ' . $rows['Date of birth'];
         }
-        $html .= $about_html;
-        $html .= '</section>';
+
+        $css = '<style>'
+            . '.fyp{color:#14213d;margin:1.5em 0}.fyp *{box-sizing:border-box}'
+            . '.fyp-head{display:flex;flex-wrap:wrap;gap:24px;align-items:center;background:#fff;border:1px solid #dbe3ee;border-top:6px solid #1d4ed8;border-radius:12px;padding:24px}'
+            . '.fyp-photo{margin:0;width:200px}.fyp-photo img{display:block;width:200px;height:auto;border-radius:10px}'
+            . '.fyp-photo figcaption{font-size:12px;margin-top:6px}'
+            . '.fyp-avatar{width:96px;height:96px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center}'
+            . '.fyp-headmain{flex:1 1 280px;min-width:0}'
+            . '.fyp-kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1d4ed8}'
+            . '.fyp-desc{font-size:17px;color:#334155;margin:6px 0 14px}'
+            . '.fyp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}'
+            . '.fyp-chips li{background:#e8efff;color:#1e3a8a;font-weight:600;font-size:13px;padding:6px 12px;border-radius:999px;margin:0}'
+            . '.fyp-cols{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;align-items:flex-start}'
+            . '.fyp-main{flex:999 1 520px;min-width:0}.fyp-side{flex:1 1 280px;min-width:0}'
+            . '.fyp-card{background:#fff;border:1px solid #dbe3ee;border-radius:12px;padding:22px}'
+            . '.fyp-card h2{margin:0 0 12px;font-size:20px;color:#0b1f44}'
+            . '.fyp-about{font-size:16px;line-height:1.65;margin:0 0 10px}'
+            . '.fyp-credit,.fyp-note{font-size:13px;color:#475569;margin:0}'
+            . '.fyp-note{margin-top:14px}'
+            . '.fyp-dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;margin:0}'
+            . '.fyp-dl dt{color:#475569;font-weight:400;margin:0}.fyp-dl dd{margin:0;font-weight:600}'
+            . '</style>';
+
+        $html = '<section class="fyp">' . $css;
+        $html .= '<div class="fyp-head">';
+        if ($photo_html !== '') {
+            $html .= $photo_html;
+        } else {
+            $html .= '<div class="fyp-avatar" aria-hidden="true"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></div>';
+        }
+        $html .= '<div class="fyp-headmain"><div class="fyp-kicker">Football player</div>';
+        if ($desc !== '') {
+            $html .= '<p class="fyp-desc">' . esc_html($desc) . '</p>';
+        }
+        if ($chips) {
+            $html .= '<ul class="fyp-chips">';
+            foreach ($chips as $chip) {
+                $html .= '<li>' . esc_html($chip) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+        $html .= '</div></div>';
+
+        $html .= '<div class="fyp-cols">';
+        if ($about_html !== '') {
+            $html .= '<div class="fyp-main"><div class="fyp-card">' . $about_html . '</div></div>';
+        }
+        if ($rows) {
+            $html .= '<aside class="fyp-side"><div class="fyp-card"><h2>Key facts</h2><dl class="fyp-dl">';
+            foreach ($rows as $label => $value) {
+                $html .= '<dt>' . esc_html($label) . '</dt><dd>' . esc_html($value) . '</dd>';
+            }
+            $html .= '</dl>';
+            if ($club_note) {
+                $html .= '<p class="fyp-note">Observed clubs show where this player appears in match coverage; this is not a complete career history.</p>';
+            }
+            $html .= '</div></aside>';
+        }
+        $html .= '</div></section>';
 
         return $content . $html;
     }
