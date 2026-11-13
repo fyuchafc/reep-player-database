@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Fyucha FC Player Profiles
  * Description: Core WordPress foundation for REEP-powered Fyucha FC player profiles.
- * Version: 0.11.1
+ * Version: 0.12.0
  * Author: Fyucha FC
  * License: GPL-2.0-or-later
  */
@@ -355,9 +355,53 @@ final class Fyucha_FC_Player_Profiles {
             }
         }
 
+        $extra = self::extra_data($reep);
+        $career_html = '';
+        $wd_note = false;
+        if ($extra) {
+            if (!empty($extra['birthplace'])) {
+                $front['Born in'] = (string) $extra['birthplace'];
+                $wd_note = true;
+            }
+            if (!empty($extra['height_cm'])) {
+                $front['Height'] = (int) $extra['height_cm'] . ' cm';
+                $wd_note = true;
+            }
+            $intl = json_decode((string) ($extra['international'] ?? ''), true);
+            if (is_array($intl) && $intl) {
+                $parts = [];
+                foreach ($intl as $team) {
+                    if (empty($team['team'])) {
+                        continue;
+                    }
+                    $text = self::span_text($team['from'] ?? 0, $team['to'] ?? 0, 'since');
+                    $parts[] = (string) $team['team'] . ($text !== '' ? ' (' . $text . ')' : '');
+                }
+                if ($parts) {
+                    $front['International'] = implode(', ', $parts);
+                    $wd_note = true;
+                }
+            }
+            $clubs = json_decode((string) ($extra['clubs'] ?? ''), true);
+            if (is_array($clubs) && $clubs) {
+                $career_html = '<h2>Career</h2><p class="fyp-credit">Senior clubs, from <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0). Youth and reserve teams are not listed.</p>'
+                    . '<div class="fyp-tablewrap"><table class="fyp-table"><thead><tr><th>Club</th><th>Years</th></tr></thead><tbody>';
+                foreach ($clubs as $club) {
+                    if (empty($club['team'])) {
+                        continue;
+                    }
+                    $career_html .= '<tr><td>' . esc_html((string) $club['team']) . '</td><td>'
+                        . esc_html(self::span_text($club['from'] ?? 0, $club['to'] ?? 0, 'present')) . '</td></tr>';
+                }
+                $career_html .= '</tbody></table></div>';
+                unset($rows['Observed clubs']);
+                $club_note = false;
+            }
+        }
+
         $rows = array_merge($front, $rows);
 
-        if (!$rows && $photo_html === '' && $about_html === '') {
+        if (!$rows && $photo_html === '' && $about_html === '' && $career_html === '') {
             return $content;
         }
 
@@ -386,7 +430,7 @@ final class Fyucha_FC_Player_Profiles {
             . '.fyp .fyp-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0!important;padding:0!important;list-style:none!important}'
             . '.fyp .fyp-chips li{background:#e8efff;color:#1e3a8a;font-weight:600;font-size:13px;padding:6px 12px!important;border-radius:999px;margin:0!important;list-style:none!important}'
             . '.fyp-cols{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;align-items:flex-start}'
-            . '.fyp-main{flex:999 1 520px;min-width:0}.fyp-side{flex:1 1 280px;min-width:0}'
+            . '.fyp-main{flex:999 1 480px;min-width:0}.fyp-side{flex:1 1 300px;min-width:280px}'
             . '.fyp-card{background:#fff;border:1px solid #dbe3ee;border-radius:12px;padding:22px}'
             . '.fyp-card h2{margin:0 0 12px;font-size:20px;color:#0b1f44}'
             . '.fyp-about{font-size:16px;line-height:1.65;margin:0 0 10px}'
@@ -394,6 +438,9 @@ final class Fyucha_FC_Player_Profiles {
             . '.fyp .fyp-note{margin:14px 0 0}'
             . '.fyp-dl{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;margin:0}'
             . '.fyp-dl dt{color:#475569;font-weight:400;margin:0}.fyp-dl dd{margin:0;font-weight:600}'
+            . '.fyp .fyp-tablewrap{overflow-x:auto}.fyp .fyp-table{width:100%;border-collapse:collapse;font-size:15px;margin:0}'
+            . '.fyp .fyp-table th{text-align:left;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border-bottom:2px solid #dbe3ee}'
+            . '.fyp .fyp-table td{padding:10px;border-bottom:1px solid #e5eaf2}'
             . '</style>';
 
         $html = '<section class="fyp">' . $css;
@@ -417,8 +464,15 @@ final class Fyucha_FC_Player_Profiles {
         $html .= '</div></div>';
 
         $html .= '<div class="fyp-cols">';
-        if ($about_html !== '') {
-            $html .= '<div class="fyp-main"><div class="fyp-card">' . $about_html . '</div></div>';
+        if ($about_html !== '' || $career_html !== '') {
+            $html .= '<div class="fyp-main">';
+            if ($about_html !== '') {
+                $html .= '<div class="fyp-card">' . $about_html . '</div>';
+            }
+            if ($career_html !== '') {
+                $html .= '<div class="fyp-card" style="margin-top:20px">' . $career_html . '</div>';
+            }
+            $html .= '</div>';
         }
         if ($rows) {
             $html .= '<aside class="fyp-side"><div class="fyp-card"><h2>Key facts</h2><dl class="fyp-dl">';
@@ -426,6 +480,9 @@ final class Fyucha_FC_Player_Profiles {
                 $html .= '<dt>' . esc_html($label) . '</dt><dd>' . esc_html($value) . '</dd>';
             }
             $html .= '</dl>';
+            if ($wd_note) {
+                $html .= '<p class="fyp-note">Birthplace, height and international team from <a href="https://www.wikidata.org/" target="_blank" rel="noopener">Wikidata</a> (CC0).</p>';
+            }
             if ($club_note) {
                 $html .= '<p class="fyp-note">Observed clubs show where this player appears in match coverage; this is not a complete career history.</p>';
             }
@@ -434,6 +491,52 @@ final class Fyucha_FC_Player_Profiles {
         $html .= '</div></section>';
 
         return $content . $html;
+    }
+
+    /**
+     * Look up Wikidata-derived profile extras (birthplace, height,
+     * international team, senior-club career) for one player by REEP ID.
+     * Returns null if the player has no row or the table is missing.
+     */
+    private static function extra_data($reep) {
+
+        global $wpdb;
+
+        if ($reep === '') {
+            return null;
+        }
+
+        $table = $wpdb->prefix . 'fyucha_player_extra';
+        $previous = $wpdb->suppress_errors(true);
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT birthplace, height_cm, international, clubs FROM {$table} WHERE reep_id = %s LIMIT 1",
+                $reep
+            ),
+            ARRAY_A
+        );
+
+        $wpdb->suppress_errors($previous);
+
+        return $row ? $row : null;
+    }
+
+    /**
+     * Format a from/to year pair for display.
+     */
+    private static function span_text($from, $to, $open_label) {
+
+        $from = $from ? (int) $from : 0;
+        $to = $to ? (int) $to : 0;
+
+        if ($from && $to) {
+            return $from === $to ? (string) $from : $from . "\u{2013}" . $to;
+        }
+        if ($from) {
+            return $open_label === 'since' ? 'since ' . $from : $from . "\u{2013}present";
+        }
+        return $to ? 'until ' . $to : '';
     }
 
     /**
